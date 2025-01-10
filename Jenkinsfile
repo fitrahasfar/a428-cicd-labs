@@ -8,6 +8,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                sh 'rm -rf node_modules package-lock.json'
                 sh 'npm install'
             }
         }

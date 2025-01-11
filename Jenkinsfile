@@ -94,7 +94,7 @@ node {
     }
 
     stage('Prepare Deploy') {
-        steps {
+        script {
             // Buat direktori app-directory jika tidak ada
             sh '''
                 mkdir -p $WORKSPACE/app-directory
@@ -138,4 +138,3 @@ node {
         }
     }
 }
-

@@ -95,7 +95,7 @@ node {
 
     stage('Prepare Deploy') {
         script {
-            // Pastikan Dockerfile tersedia
+            // Mengarsipkan file yang diperlukan untuk deployment
             sh '''
                 tar -czf app-files.tar.gz \
                     Dockerfile \

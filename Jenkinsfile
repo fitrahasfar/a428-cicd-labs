@@ -74,7 +74,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'node:16-buster-slim'
         DOCKER_PORT = '3000:3000'
-        EC2_IP = '13.229.218.200'
+        EC2_IP = '18.136.209.19'
     }
 
     stages {

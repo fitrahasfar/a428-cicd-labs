@@ -113,7 +113,9 @@ node {
                         # Deploy on EC2
                         ssh -o StrictHostKeyChecking=no -i $AWS_KEY ubuntu@47.129.47.98 << EOF
                             cd /home/ubuntu
+                            # Extract application files
                             tar -xzf app-files.tar.gz
+                            # Check if a Docker repository exists, and initialize it if not
                             docker build -t react-app .
                             docker stop react-app-container || true
                             docker rm react-app-container || true

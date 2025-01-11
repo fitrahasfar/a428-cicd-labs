@@ -95,8 +95,14 @@ node {
 
     stage('Prepare Deploy') {
         script {
-            // Archive the necessary files for deployment
-            sh 'tar -czf app-files.tar.gz Dockerfile package.json index.js'
+            // Pastikan Dockerfile tersedia
+            sh '''
+                tar -czf app-files.tar.gz \
+                    Dockerfile \
+                    package.json \
+                    public \
+                    src
+            '''
         }
     }
 
@@ -110,13 +116,11 @@ node {
                     # Deploy on EC2
                     ssh -o StrictHostKeyChecking=no -i $AWS_KEY ubuntu@47.129.47.98 << EOF
                         cd /home/ubuntu
-                        # Extract application files
                         tar -xzf app-files.tar.gz
-                        # Build and run Docker container
                         docker build -t react-app .
                         docker stop react-app-container || true
                         docker rm react-app-container || true
-                        docker run -d --name react-app-container -p 3000:3000 react-app
+                        docker run -d --name react-app-container -p 80:80 react-app
                     EOF
                 '''
             }

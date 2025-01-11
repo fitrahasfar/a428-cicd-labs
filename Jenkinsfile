@@ -95,8 +95,8 @@ node {
 
     stage('Prepare Deploy') {
         script {
-            // Buat direktori app-directory jika tidak ada
             sh '''
+                # Buat direktori app-directory jika tidak ada
                 mkdir -p $WORKSPACE/app-directory
                 echo "Sample file for deployment" > $WORKSPACE/app-directory/index.html
             '''
@@ -119,6 +119,9 @@ node {
                     # Tambahkan host EC2 ke known_hosts
                     ssh-keyscan -H $EC2_IP > $WORKSPACE/ssh/known_hosts
 
+                    # Buat direktori tujuan di EC2
+                    ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP "mkdir -p /home/ubuntu/app-directory"
+
                     # Salin aplikasi ke EC2
                     scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r $WORKSPACE/app-directory ubuntu@$EC2_IP:/home/ubuntu/app-directory/
 
@@ -138,3 +141,4 @@ node {
         }
     }
 }
+

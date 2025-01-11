@@ -97,14 +97,18 @@ node {
         script {
             withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
                 sh '''
-                    # Tambahkan fingerprint host EC2 ke known_hosts
-                    ssh-keyscan -H 47.129.47.98 >> ~/.ssh/known_hosts
+                    # Buat direktori sementara untuk known_hosts
+                    mkdir -p $WORKSPACE/ssh
+                    chmod 700 $WORKSPACE/ssh
+
+                    # Tambahkan host EC2 ke known_hosts
+                    ssh-keyscan -H <your-ec2-public-ip> > $WORKSPACE/ssh/known_hosts
 
                     # Salin aplikasi ke EC2
-                    scp -i $AWS_KEY -r ./app-directory ubuntu@47.129.47.98:/home/ubuntu/app-directory/
+                    scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r ./app-directory ubuntu@<your-ec2-public-ip>:/home/ubuntu/app-directory/
 
                     # SSH ke EC2 dan deploy ke Docker
-                    ssh -i $AWS_KEY ubuntu@47.129.47.98 << EOF
+                    ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@<your-ec2-public-ip> << EOF
                         cd /home/ubuntu/app-directory
                         docker build -t my-app .
                         docker stop my-app-container || true
@@ -112,7 +116,6 @@ node {
                         docker run -d --name my-app-container -p 3000:3000 my-app
                     EOF
                 '''
-
             }
             echo 'Aplikasi berjalan selama 1 menit di Docker pada EC2...'
             sleep 60
@@ -120,5 +123,6 @@ node {
         }
     }
 }
+
 
 

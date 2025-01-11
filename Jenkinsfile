@@ -95,11 +95,12 @@ node {
 
     stage('Prepare Deploy') {
         script {
-            // Tambahkan Dockerfile ke direktori app-directory
+            // Tambahkan file aplikasi untuk deployment
             sh '''
                 mkdir -p $WORKSPACE/app-directory
-                echo "Sample file for deployment" > $WORKSPACE/app-directory/index.html
-                echo "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"npm\\", \\"start\\"]" > $WORKSPACE/app-directory/Dockerfile
+                echo '{"name": "my-app", "version": "1.0.0", "main": "index.js"}' > $WORKSPACE/app-directory/package.json
+                echo "console.log('Hello, World!');" > $WORKSPACE/app-directory/index.js
+                echo -e "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"node\\", \\"index.js\\"]" > $WORKSPACE/app-directory/Dockerfile
             '''
         }
     }
@@ -108,8 +109,6 @@ node {
         script {
             withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
                 sh '''
-                    #!/bin/bash
-
                     # IP EC2
                     EC2_IP="47.129.47.98"
 
@@ -133,7 +132,7 @@ node {
                         docker stop my-app-container || true
                         docker rm my-app-container || true
                         docker run -d --name my-app-container -p 3000:3000 my-app
-                    EOF
+EOF
                 '''
             }
             echo 'Aplikasi berjalan selama 1 menit di Docker pada EC2...'

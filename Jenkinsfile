@@ -98,10 +98,10 @@ node {
             withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
                 sh '''
                     # Salin aplikasi ke EC2
-                    scp -i $AWS_KEY -r ./app-directory ubuntu@<your-ec2-public-ip>:/home/ubuntu/app-directory/
+                    scp -i $AWS_KEY -r ./app-directory ubuntu@47.129.47.98:/home/ubuntu/app-directory/
 
                     # SSH ke EC2 dan deploy ke Docker
-                    ssh -i $AWS_KEY ubuntu@<your-ec2-public-ip> << EOF
+                    ssh -i $AWS_KEY ubuntu@47.129.47.98 << EOF
                         cd /home/ubuntu/app-directory
                         docker build -t my-app .
                         docker stop my-app-container || true

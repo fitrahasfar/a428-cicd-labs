@@ -94,35 +94,31 @@ node {
     }
 
     stage('Prepare Deploy') {
-        steps {
-            script {
-                // Archive the necessary files for deployment
-                sh 'tar -czf app-files.tar.gz Dockerfile package.json index.js'
-            }
+        script {
+            // Archive the necessary files for deployment
+            sh 'tar -czf app-files.tar.gz Dockerfile package.json index.js'
         }
     }
 
     stage('Deploy to EC2') {
-        steps {
-            withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
-                script {
-                    sh '''
-                        # Upload files to EC2
-                        scp -o StrictHostKeyChecking=no -i $AWS_KEY app-files.tar.gz ubuntu@47.129.47.98:/home/ubuntu/
+        withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
+            script {
+                sh '''
+                    # Upload files to EC2
+                    scp -o StrictHostKeyChecking=no -i $AWS_KEY app-files.tar.gz ubuntu@47.129.47.98:/home/ubuntu/
 
-                        # Deploy on EC2
-                        ssh -o StrictHostKeyChecking=no -i $AWS_KEY ubuntu@47.129.47.98 << EOF
-                            cd /home/ubuntu
-                            # Extract application files
-                            tar -xzf app-files.tar.gz
-                            # Check if a Docker repository exists, and initialize it if not
-                            docker build -t react-app .
-                            docker stop react-app-container || true
-                            docker rm react-app-container || true
-                            docker run -d --name react-app-container -p 3000:3000 react-app
-                        EOF
-                    '''
-                }
+                    # Deploy on EC2
+                    ssh -o StrictHostKeyChecking=no -i $AWS_KEY ubuntu@47.129.47.98 << EOF
+                        cd /home/ubuntu
+                        # Extract application files
+                        tar -xzf app-files.tar.gz
+                        # Build and run Docker container
+                        docker build -t react-app .
+                        docker stop react-app-container || true
+                        docker rm react-app-container || true
+                        docker run -d --name react-app-container -p 3000:3000 react-app
+                    EOF
+                '''
             }
         }
     }

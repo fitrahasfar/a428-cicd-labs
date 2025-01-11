@@ -96,12 +96,10 @@ node {
 
     stage('Deploy') {
         script {
-            // Menggunakan credential SSH key untuk koneksi ke EC2
-            withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
+            withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ec2-key', keyFileVariable: 'AWS_KEY')]) {
                 sh '''
-                    # Gunakan bash untuk kompatibilitas
                     #!/bin/bash
-                    
+
                     # IP EC2 yang dituju
                     EC2_IP="47.129.47.98"
 
@@ -109,7 +107,7 @@ node {
                     mkdir -p $WORKSPACE/ssh
                     chmod 700 $WORKSPACE/ssh
 
-                    # Tambahkan fingerprint host EC2 ke known_hosts
+                    # Tambahkan host EC2 ke known_hosts
                     ssh-keyscan -H $EC2_IP > $WORKSPACE/ssh/known_hosts
 
                     # Salin aplikasi ke EC2
@@ -117,17 +115,10 @@ node {
 
                     # SSH ke EC2 dan jalankan perintah deploy
                     ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP << EOF
-                        # Navigasi ke direktori aplikasi
                         cd /home/ubuntu/app-directory
-
-                        # Build Docker image
                         docker build -t my-app .
-
-                        # Hentikan container lama jika ada
                         docker stop my-app-container || true
                         docker rm my-app-container || true
-
-                        # Jalankan container baru
                         docker run -d --name my-app-container -p 3000:3000 my-app
                     EOF
                 '''
@@ -137,4 +128,5 @@ node {
             echo 'Tahap Deploy selesai.'
         }
     }
+
 }

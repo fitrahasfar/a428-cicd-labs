@@ -93,6 +93,16 @@ node {
         }
     }
 
+    stage('Prepare Deploy') {
+        steps {
+            // Buat direktori app-directory jika tidak ada
+            sh '''
+                mkdir -p $WORKSPACE/app-directory
+                echo "Sample file for deployment" > $WORKSPACE/app-directory/index.html
+            '''
+        }
+    }
+
     stage('Deploy to EC2') {
         script {
             withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
@@ -108,12 +118,6 @@ node {
 
                     # Tambahkan host EC2 ke known_hosts
                     ssh-keyscan -H $EC2_IP > $WORKSPACE/ssh/known_hosts
-
-                    # Pastikan direktori aplikasi ada di $WORKSPACE
-                    if [ ! -d "$WORKSPACE/app-directory" ]; then
-                        echo "Error: Direktori app-directory tidak ditemukan di $WORKSPACE"
-                        exit 1
-                    fi
 
                     # Salin aplikasi ke EC2
                     scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r $WORKSPACE/app-directory ubuntu@$EC2_IP:/home/ubuntu/app-directory/
@@ -134,3 +138,4 @@ node {
         }
     }
 }
+

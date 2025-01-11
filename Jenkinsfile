@@ -95,10 +95,11 @@ node {
 
     stage('Prepare Deploy') {
         script {
+            // Tambahkan Dockerfile ke direktori app-directory
             sh '''
-                # Buat direktori app-directory jika tidak ada
                 mkdir -p $WORKSPACE/app-directory
                 echo "Sample file for deployment" > $WORKSPACE/app-directory/index.html
+                echo -e "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"npm\\", \\"start\\"]" > $WORKSPACE/app-directory/Dockerfile
             '''
         }
     }
@@ -123,10 +124,10 @@ node {
                     ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP "mkdir -p /home/ubuntu/app-directory"
 
                     # Salin aplikasi ke EC2
-                    scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r $WORKSPACE/app-directory ubuntu@$EC2_IP:/home/ubuntu/app-directory/
+                    scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r $WORKSPACE/app-directory/* ubuntu@$EC2_IP:/home/ubuntu/app-directory/
 
                     # SSH ke EC2 untuk menjalankan deployment
-                    ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP << EOF
+                    ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP << 'EOF'
                         cd /home/ubuntu/app-directory
                         docker build -t my-app .
                         docker stop my-app-container || true
@@ -141,4 +142,3 @@ node {
         }
     }
 }
-

@@ -100,7 +100,7 @@ node {
                 mkdir -p $WORKSPACE/app-directory
                 echo '{"name": "my-app", "version": "1.0.0", "main": "index.js"}' > $WORKSPACE/app-directory/package.json
                 echo "console.log('Hello, World!');" > $WORKSPACE/app-directory/index.js
-                echo -e "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"node\\", \\"index.js\\"]" > $WORKSPACE/app-directory/Dockerfile
+                echo "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"node\\", \\"index.js\\"]" > $WORKSPACE/app-directory/Dockerfile
             '''
         }
     }

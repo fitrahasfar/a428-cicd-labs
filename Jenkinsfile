@@ -118,7 +118,7 @@ pipeline {
             steps {
                 script {
                     // Copy all files to prepare for deployment
-                    sh 'tar -czf app-files.tar.gz .'
+                    sh 'tar --exclude=app-files.tar.gz -czf app-files.tar.gz .'
                 }
             }
         }

@@ -58,10 +58,32 @@ node {
         }
     }
 
-    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
-        stage('Deploy') {
-            sh 'npm start &'
-            echo 'Aplikasi berjalan selama 1 menit...'
+    // docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+    //     stage('Deploy') {
+    //         sh 'npm start &'
+    //         echo 'Aplikasi berjalan selama 1 menit...'
+    //         sleep 60
+    //         echo 'Tahap Deploy selesai.'
+    //     }
+    // }
+    stage('Deploy') {
+        steps {
+            withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
+                sh '''
+                    # Salin aplikasi ke EC2
+                    scp -i $AWS_KEY -r ./app-directory ubuntu@<your-ec2-public-ip>:/home/ubuntu/app-directory/
+
+                    # SSH ke EC2 dan deploy ke Docker
+                    ssh -i $AWS_KEY ubuntu@47.129.47.98 << EOF
+                        cd /home/ubuntu/app-directory
+                        docker build -t my-app .
+                        docker stop my-app-container || true
+                        docker rm my-app-container || true
+                        docker run -d --name my-app-container -p 3000:3000 my-app
+                    EOF
+                '''
+            }
+            echo 'Aplikasi berjalan selama 1 menit di Docker pada EC2...'
             sleep 60
             echo 'Tahap Deploy selesai.'
         }

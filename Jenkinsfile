@@ -99,7 +99,7 @@ node {
             sh '''
                 mkdir -p $WORKSPACE/app-directory
                 echo "Sample file for deployment" > $WORKSPACE/app-directory/index.html
-                echo -e "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"npm\\", \\"start\\"]" > $WORKSPACE/app-directory/Dockerfile
+                echo "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"npm\\", \\"start\\"]" > $WORKSPACE/app-directory/Dockerfile
             '''
         }
     }

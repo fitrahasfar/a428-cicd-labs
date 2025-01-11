@@ -45,29 +45,26 @@ node {
     }
 
     stage('Manual Approval') {
-        steps {
-            script {
-                def userInput = input(
-                    message: 'Lanjutkan ke tahap Deploy?',
-                    parameters: [
-                        choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan ke tahap Deploy atau Abort untuk menghentikan pipeline')
-                    ]
-                )
-                if (userInput == 'Abort') {
-                    error('Pipeline dihentikan oleh pengguna')
-                }
+        script {
+            def userInput = input(
+                message: 'Lanjutkan ke tahap Deploy?',
+                parameters: [
+                    choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan ke tahap Deploy atau Abort untuk menghentikan pipeline')
+                ]
+            )
+            if (userInput == 'Abort') {
+                error('Pipeline dihentikan oleh pengguna')
             }
         }
     }
 
     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Deploy') {
-            steps {
-                sh 'npm start &'
-                echo 'Aplikasi berjalan selama 1 menit...'
-                sleep 60
-                echo 'Tahap Deploy selesai.'
-            }
+            sh 'npm start &'
+            echo 'Aplikasi berjalan selama 1 menit...'
+            sleep 60
+            echo 'Tahap Deploy selesai.'
         }
     }
 }
+

@@ -68,76 +68,65 @@
 //     }
 // }
 
-node {
-    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
-        stage('Build') {
-            sh 'npm install'
-        }
-
-        stage('Test') {
-            sh './jenkins/scripts/test.sh'
-        }
-    }
-
-    stage('Manual Approval') {
-        script {
-            def userInput = input(
-                message: 'Lanjutkan ke tahap Deploy?',
-                parameters: [
-                    choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan ke tahap Deploy atau Abort untuk menghentikan pipeline')
-                ]
-            )
-            if (userInput == 'Abort') {
-                error('Pipeline dihentikan oleh pengguna')
+pipeline {
+    agent any
+    stages {
+        stage('Build Application') {
+            steps {
+                script {
+                    docker.image('node:16').inside {
+                        // Install dependencies
+                        sh 'npm install'
+                    }
+                }
             }
         }
-    }
 
-    stage('Prepare Deploy') {
-        script {
-            // Tambahkan file aplikasi untuk deployment
-            sh '''
-                mkdir -p $WORKSPACE/app-directory
-                echo '{"name": "my-app", "version": "1.0.0", "main": "index.js"}' > $WORKSPACE/app-directory/package.json
-                echo "console.log('Hello, World!');" > $WORKSPACE/app-directory/index.js
-                echo "FROM node:16\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD [\\"node\\", \\"index.js\\"]" > $WORKSPACE/app-directory/Dockerfile
-            '''
+        stage('Test Application') {
+            steps {
+                script {
+                    docker.image('node:16').inside {
+                        // Run tests
+                        sh 'npm test'
+                    }
+                }
+            }
         }
-    }
 
-    stage('Deploy to EC2') {
-        script {
-            withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
+        stage('Prepare Deploy') {
+            steps {
+                // Archive files for deployment
                 sh '''
-                    # IP EC2
-                    EC2_IP="47.129.47.98"
-
-                    # Buat direktori sementara untuk known_hosts
-                    mkdir -p $WORKSPACE/ssh
-                    chmod 700 $WORKSPACE/ssh
-
-                    # Tambahkan host EC2 ke known_hosts
-                    ssh-keyscan -H $EC2_IP > $WORKSPACE/ssh/known_hosts
-
-                    # Buat direktori tujuan di EC2
-                    ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP "mkdir -p /home/ubuntu/app-directory"
-
-                    # Salin aplikasi ke EC2
-                    scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r $WORKSPACE/app-directory/* ubuntu@$EC2_IP:/home/ubuntu/app-directory/
-
-                    # SSH ke EC2 untuk menjalankan deployment
-                    ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP << 'EOF'
-                        cd /home/ubuntu/app-directory
-                        docker build -t my-app .
-                        docker stop my-app-container || true
-                        docker rm my-app-container || true
-                        docker run -d --name my-app-container -p 3000:3000 my-app
-EOF
+                    tar -czf app-files.tar.gz Dockerfile package.json index.js
                 '''
             }
-            echo 'Aplikasi berjalan selama 1 menit di Docker pada EC2...'
-            sleep 60
-            echo 'Tahap Deploy selesai.'
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-key', keyFileVariable: 'AWS_KEY')]) {
+                    sh '''
+                        # Upload files to EC2
+                        scp -o StrictHostKeyChecking=no -i $AWS_KEY app-files.tar.gz ubuntu@47.129.47.98:/home/ubuntu/
+
+                        # Deploy on EC2
+                        ssh -o StrictHostKeyChecking=no -i $AWS_KEY ubuntu@47.129.47.98 << EOF
+                            cd /home/ubuntu
+                            tar -xzf app-files.tar.gz
+                            docker build -t react-app .
+                            docker stop react-app-container || true
+                            docker rm react-app-container || true
+                            docker run -d --name react-app-container -p 3000:3000 react-app
+                        EOF
+                    '''
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline execution complete!'
         }
     }
 }
+

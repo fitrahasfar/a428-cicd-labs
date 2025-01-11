@@ -117,7 +117,7 @@ pipeline {
         stage('Prepare Deploy') {
             steps {
                 script {
-                    // Copy all files to prepare for deployment
+                    // Exclude the app-files.tar.gz file and create the tarball
                     sh 'tar --exclude=app-files.tar.gz -czf app-files.tar.gz .'
                 }
             }
@@ -132,12 +132,18 @@ pipeline {
                             scp -o StrictHostKeyChecking=no -i $AWS_KEY app-files.tar.gz ubuntu@$EC2_IP:/home/ubuntu/
 
                             # Deploy on EC2
-                            ssh -o StrictHostKeyChecking=no -i $AWS_KEY ubuntu@$EC2_IP << EOF
+                            ssh -o StrictHostKeyChecking=no -i $AWS_KEY ubuntu@$EC2_IP << 'EOF'
                                 cd /home/ubuntu
                                 tar -xzf app-files.tar.gz
                                 docker build -t react-app .
-                                docker stop react-app-container || true
-                                docker rm react-app-container || true
+                                
+                                # Stop and remove existing container if exists
+                                if docker ps -a --format '{{.Names}}' | grep -q '^react-app-container$'; then
+                                    docker stop react-app-container
+                                    docker rm react-app-container
+                                fi
+
+                                # Run new container
                                 docker run -d --name react-app-container -p 3000:3000 react-app
                             EOF
                         '''

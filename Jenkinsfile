@@ -109,8 +109,14 @@ node {
                     # Tambahkan host EC2 ke known_hosts
                     ssh-keyscan -H $EC2_IP > $WORKSPACE/ssh/known_hosts
 
+                    # Pastikan direktori aplikasi ada di $WORKSPACE
+                    if [ ! -d "$WORKSPACE/app-directory" ]; then
+                        echo "Error: Direktori app-directory tidak ditemukan di $WORKSPACE"
+                        exit 1
+                    fi
+
                     # Salin aplikasi ke EC2
-                    scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r ./app-directory ubuntu@$EC2_IP:/home/ubuntu/app-directory/
+                    scp -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY -r $WORKSPACE/app-directory ubuntu@$EC2_IP:/home/ubuntu/app-directory/
 
                     # SSH ke EC2 untuk menjalankan deployment
                     ssh -o UserKnownHostsFile=$WORKSPACE/ssh/known_hosts -i $AWS_KEY ubuntu@$EC2_IP << EOF

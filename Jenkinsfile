@@ -311,19 +311,19 @@ node {
                 echo "Membersihkan container dan image Docker di host..."
 
                 # Hentikan semua container yang sedang berjalan
-                if [ \$(docker ps -q | wc -l) -gt 0 ]; then
+                if [ \$(sudo docker ps -q | wc -l) -gt 0 ]; then
                     echo "Menghentikan semua container yang sedang berjalan..."
                     sudo docker ps -q | xargs -r docker stop || true
                 fi
 
                 # Hapus semua container
-                if [ \$(docker ps -a -q | wc -l) -gt 0 ]; then
+                if [ \$(sudo docker ps -a -q | wc -l) -gt 0 ]; then
                     echo "Menghapus semua container..."
                     sudo docker ps -a -q | xargs -r docker rm || true
                 fi
 
                 # Hapus semua image Docker
-                if [ \$(docker images -q | wc -l) -gt 0 ]; then
+                if [ \$(sudo docker images -q | wc -l) -gt 0 ]; then
                     echo "Menghapus semua image Docker..."
                     sudo docker images -q | xargs -r docker rmi -f || true
                 fi

@@ -145,7 +145,6 @@
 
 // }
 
-
 node {
     stage('Checkout Code') {
         checkout scm
@@ -178,17 +177,13 @@ node {
 
     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Deploy') {
-            // Mematikan proses yang menggunakan port 3000
+            // Mematikan proses yang menggunakan port 3000 sebelum memulai deploy
             sh """
-                echo "Memeriksa apakah port 3000 sedang digunakan..."
                 if lsof -i:3000; then
                     echo "Port 3000 sedang digunakan. Menghentikan proses..."
                     fuser -k 3000/tcp || true
-                else
-                    echo "Port 3000 tidak digunakan. Melanjutkan deployment..."
                 fi
             """
-
             // Menjalankan aplikasi
             sh 'npm start &'
             echo 'Aplikasi berjalan selama 1 menit...'
@@ -203,7 +198,7 @@ node {
             def tag = "latest"
 
             sh """
-                # Build Docker image
+                echo "Membangun Docker image..."
                 docker build -t ${imageName}:${tag} .
             """
         }
@@ -214,7 +209,7 @@ node {
             def imageName = "my-app-image"
             def tag = "latest"
 
-            // Menghentikan container lama jika ada
+            // Hapus container lama jika ada
             sh """
                 if [ \$(docker ps -a -q -f name=my-app-container) ]; then
                     echo "Menghapus container lama..."
@@ -222,21 +217,21 @@ node {
                 fi
 
                 # Menjalankan container baru
+                echo "Menjalankan Docker container..."
                 docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
             """
-            echo 'Docker container berhasil dijalankan.'
         }
     }
 
     stage('Debug Docker') {
         script {
-            // Debugging untuk memastikan semuanya berjalan
+            // Debugging untuk melihat log dan status container
             sh """
                 echo "Daftar container Docker:"
                 docker ps -a
 
                 echo "Log dari container my-app-container:"
-                docker logs my-app-container || echo "Container belum berjalan atau tidak ada log."
+                docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
             """
         }
     }

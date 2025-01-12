@@ -313,19 +313,19 @@ node {
                 # Hentikan semua container yang sedang berjalan
                 if [ \$(docker ps -q | wc -l) -gt 0 ]; then
                     echo "Menghentikan semua container yang sedang berjalan..."
-                    docker ps -q | xargs -r docker stop || true
+                    sudo docker ps -q | xargs -r docker stop || true
                 fi
 
                 # Hapus semua container
                 if [ \$(docker ps -a -q | wc -l) -gt 0 ]; then
                     echo "Menghapus semua container..."
-                    docker ps -a -q | xargs -r docker rm || true
+                    sudo docker ps -a -q | xargs -r docker rm || true
                 fi
 
                 # Hapus semua image Docker
                 if [ \$(docker images -q | wc -l) -gt 0 ]; then
                     echo "Menghapus semua image Docker..."
-                    docker images -q | xargs -r docker rmi -f || true
+                    sudo docker images -q | xargs -r docker rmi -f || true
                 fi
             """
         }
@@ -387,7 +387,7 @@ node {
 
             sh """
                 echo "Membangun Docker image..."
-                docker build -t ${imageName}:${tag} .
+                sudo docker build -t ${imageName}:${tag} .
             """
         }
     }
@@ -401,12 +401,12 @@ node {
             sh """
                 if [ \$(docker ps -a -q -f name=my-app-container) ]; then
                     echo "Menghapus container lama..."
-                    docker rm -f my-app-container || true
+                    sudo docker rm -f my-app-container || true
                 fi
 
                 # Menjalankan container baru
                 echo "Menjalankan Docker container..."
-                docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
+                sudo docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
             """
         }
     }
@@ -416,10 +416,10 @@ node {
             // Debugging untuk melihat log dan status container
             sh """
                 echo "Daftar container Docker:"
-                docker ps -a
+                sudo docker ps -a
 
                 echo "Log dari container my-app-container:"
-                docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
+                sudo docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
             """
         }
     }

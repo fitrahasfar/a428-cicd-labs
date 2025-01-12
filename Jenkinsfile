@@ -36,8 +36,8 @@
 node {
     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Build') {
-            sh 'pwd'
-            sh 'ls -la'
+            sh 'git clone -b react-app https://github.com/fitrahasfar/a428-cicd-labs.git'
+            sh 'cd a428-cicd-labs'
             sh 'npm install'
         }
 

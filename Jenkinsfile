@@ -135,4 +135,12 @@ node {
             echo 'Docker container berhasil dijalankan.'
         }
     }
+
+    stage('Debug Docker') {
+        steps {
+            sh 'docker ps -a'
+            sh 'docker logs my-app-container'
+        }
+    }
+
 }

@@ -311,21 +311,21 @@ node {
                 echo "Membersihkan container dan image Docker di host..."
 
                 # Hentikan semua container yang sedang berjalan
-                if [ \$(sudo docker ps -q | wc -l) -gt 0 ]; then
+                if [ \$(docker ps -q | wc -l) -gt 0 ]; then
                     echo "Menghentikan semua container yang sedang berjalan..."
-                    sudo docker ps -q | xargs -r docker stop || true
+                    docker ps -q | xargs -r docker stop || true
                 fi
 
                 # Hapus semua container
-                if [ \$(sudo docker ps -a -q | wc -l) -gt 0 ]; then
+                if [ \$(docker ps -a -q | wc -l) -gt 0 ]; then
                     echo "Menghapus semua container..."
-                    sudo docker ps -a -q | xargs -r docker rm || true
+                    docker ps -a -q | xargs -r docker rm || true
                 fi
 
                 # Hapus semua image Docker
-                if [ \$(sudo docker images -q | wc -l) -gt 0 ]; then
+                if [ \$(docker images -q | wc -l) -gt 0 ]; then
                     echo "Menghapus semua image Docker..."
-                    sudo docker images -q | xargs -r docker rmi -f || true
+                    docker images -q | xargs -r docker rmi -f || true
                 fi
             """
         }
@@ -387,7 +387,7 @@ node {
 
             sh """
                 echo "Membangun Docker image..."
-                sudo docker build -t ${imageName}:${tag} .
+                docker build -t ${imageName}:${tag} .
             """
         }
     }
@@ -401,12 +401,12 @@ node {
             sh """
                 if [ \$(docker ps -a -q -f name=my-app-container) ]; then
                     echo "Menghapus container lama..."
-                    sudo docker rm -f my-app-container || true
+                    docker rm -f my-app-container || true
                 fi
 
                 # Menjalankan container baru
                 echo "Menjalankan Docker container..."
-                sudo docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
+                docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
             """
         }
     }
@@ -416,10 +416,10 @@ node {
             // Debugging untuk melihat log dan status container
             sh """
                 echo "Daftar container Docker:"
-                sudo docker ps -a
+                docker ps -a
 
                 echo "Log dari container my-app-container:"
-                sudo docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
+                docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
             """
         }
     }

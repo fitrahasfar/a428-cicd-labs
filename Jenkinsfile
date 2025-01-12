@@ -112,31 +112,27 @@ node {
     }
 
     stage('Build Docker Image') {
-        steps {
-            script {
-                def imageName = "my-app-image"
-                def tag = "latest"
+        script {
+            def imageName = "my-app-image"
+            def tag = "latest"
 
-                sh """
-                    # Build Docker image
-                    docker build -t ${imageName}:${tag} .
-                """
-            }
+            sh """
+                # Build Docker image
+                docker build -t ${imageName}:${tag} .
+            """
         }
     }
 
     stage('Run Docker Container') {
-        steps {
-            script {
-                def imageName = "my-app-image"
-                def tag = "latest"
+        script {
+            def imageName = "my-app-image"
+            def tag = "latest"
 
-                sh """
-                    # Run Docker container
-                    docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
-                """
-                echo 'Docker container berhasil dijalankan.'
-            }
+            sh """
+                # Run Docker container
+                docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
+            """
+            echo 'Docker container berhasil dijalankan.'
         }
     }
 }

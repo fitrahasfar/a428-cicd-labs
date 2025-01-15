@@ -474,56 +474,38 @@ node {
         script {
             def vmUser = "ubuntu"
             def vmHost = "52.221.207.76"
-            def deployDir = "/home/ubuntu/"
+            def deployDir = "/home/ubuntu/deploy"
             def sshCredentialId = "remoteVm"
 
-            sshagent([sshCredentialId]) {
-                // Salin file build ke VM
+            sshagent(credentials: [sshCredentialId]) {
+                // Periksa apakah direktori target ada di server
                 sh """
-                    echo "Mengirim file build ke VM..."
-                    scp -o StrictHostKeyChecking=no -r ${vmUser}@${vmHost}:${deployDir}
+                    echo "Memeriksa apakah direktori deploy ada di server..."
+                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "
+                        mkdir -p ${deployDir}
+                    "
                 """
 
-                // Jalankan perintah deploy di VM
+                // Salin file project ke VM
                 sh """
-                    echo "Melakukan deploy di VM..."
-                    ssh -o StrictHostKeyChecking=no -r . ${vmUser}@${vmHost} "bash -c '
-                        cd ${deployDir}
+                    echo "Mengirim file project ke VM..."
+                    scp -o StrictHostKeyChecking=no -r ./* ${vmUser}@${vmHost}:${deployDir}/
+                """
+
+                // Jalankan aplikasi di server
+                sh """
+                    echo "Menjalankan aplikasi di server..."
+                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "
+                        cd ${deployDir} &&
                         if lsof -i:3000; then
-                            echo \"Port 3000 sedang digunakan. Menghentikan proses...\"
+                            echo \\\"Port 3000 sedang digunakan. Menghentikan proses...\\\" &&
                             fuser -k 3000/tcp || true
-                        fi
-                        echo \"Menjalankan aplikasi...\"
-                        nohup npm start &
-                    '
+                        fi &&
+                        echo \\\"Menjalankan aplikasi...\\\" &&
+                        nohup npm start > output.log 2>&1 &
                     "
                 """
             }
-        }
-    }
-
-    stage('Build Docker Image') {
-        script {
-            def imageName = "my-app-image"
-            def tag = "latest"
-
-            sh """
-                echo "Membangun Docker image..."
-                docker build -t ${imageName}:${tag} .
-            """
-        }
-    }
-
-    stage('Debug Docker') {
-        script {
-            // Debugging untuk melihat log dan status container
-            sh """
-                echo "Daftar container Docker:"
-                docker ps -a
-
-                echo "Log dari container my-app-container:"
-                docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
-            """
         }
     }
 }

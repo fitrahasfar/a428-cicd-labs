@@ -303,134 +303,12 @@
 // }
 
 // berhasil hapus container
-node {
-    stage('Clean Up Docker') {
-        script {
-            // Membersihkan container dan image Docker sebelum melanjutkan pipeline
-            sh """
-                echo "Membersihkan container dan image Docker di host..."
-
-                # Hentikan semua container yang sedang berjalan
-                if [ \$(docker ps -q | wc -l) -gt 0 ]; then
-                    echo "Menghentikan semua container yang sedang berjalan..."
-                    docker ps -q | xargs -r docker stop || true
-                fi
-
-                # Hapus semua container
-                if [ \$(docker ps -a -q | wc -l) -gt 0 ]; then
-                    echo "Menghapus semua container..."
-                    docker ps -a -q | xargs -r docker rm || true
-                fi
-
-                # Hapus semua image Docker
-                if [ \$(docker images -q | wc -l) -gt 0 ]; then
-                    echo "Menghapus semua image Docker..."
-                    docker images -q | xargs -r docker rmi -f || true
-                fi
-            """
-        }
-
-        // Menambahkan opsi untuk berhenti sementara sebelum melanjutkan pipeline
-        input message: 'Proses clean-up selesai. Lanjutkan ke tahap Checkout Code?'
-    }
-
-    stage('Checkout Code') {
-        checkout scm
-    }
-
-    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
-        stage('Build') {
-            sh 'ls'
-            sh 'npm install'
-        }
-
-        stage('Test') {
-            sh './jenkins/scripts/test.sh'
-        }
-    }
-
-    stage('Manual Approval') {
-        script {
-            def userInput = input(
-                message: 'Lanjutkan ke tahap Deploy?',
-                parameters: [
-                    choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan ke tahap Deploy atau Abort untuk menghentikan pipeline')
-                ]
-            )
-            if (userInput == 'Abort') {
-                error('Pipeline dihentikan oleh pengguna')
-            }
-        }
-    }
-
-    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
-        stage('Deploy') {
-            // Mematikan proses yang menggunakan port 3000 sebelum memulai deploy
-            sh """
-                if lsof -i:3000; then
-                    echo "Port 3000 sedang digunakan. Menghentikan proses..."
-                    fuser -k 3000/tcp || true
-                fi
-            """
-            // Menjalankan aplikasi
-            sh 'npm start &'
-            echo 'Aplikasi berjalan selama 1 menit...'
-            sleep 60
-            echo 'Tahap Deploy selesai.'
-        }
-    }
-
-    stage('Build Docker Image') {
-        script {
-            def imageName = "my-app-image"
-            def tag = "latest"
-
-            sh """
-                echo "Membangun Docker image..."
-                docker build -t ${imageName}:${tag} .
-            """
-        }
-    }
-
-    stage('Run Docker Container') {
-        script {
-            def imageName = "my-app-image"
-            def tag = "latest"
-
-            // Hapus container lama jika ada
-            sh """
-                if [ \$(docker ps -a -q -f name=my-app-container) ]; then
-                    echo "Menghapus container lama..."
-                    docker rm -f my-app-container || true
-                fi
-
-                # Menjalankan container baru
-                echo "Menjalankan Docker container..."
-                docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
-            """
-        }
-    }
-
-    stage('Debug Docker') {
-        script {
-            // Debugging untuk melihat log dan status container
-            sh """
-                echo "Daftar container Docker:"
-                docker ps -a
-
-                echo "Log dari container my-app-container:"
-                docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
-            """
-        }
-    }
-}
-
 // node {
 //     stage('Clean Up Docker') {
 //         script {
 //             // Membersihkan container dan image Docker sebelum melanjutkan pipeline
 //             sh """
-//                 echo "Membersihkan container dan image Docker di VM host..."
+//                 echo "Membersihkan container dan image Docker di host..."
 
 //                 # Hentikan semua container yang sedang berjalan
 //                 if [ \$(docker ps -q | wc -l) -gt 0 ]; then
@@ -460,22 +338,14 @@ node {
 //         checkout scm
 //     }
 
-//     stage('Build') {
-//         script {
-//             sh """
-//                 echo "Menjalankan Build di VM host..."
-//                 ls
-//                 npm install
-//             """
+//     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+//         stage('Build') {
+//             sh 'ls'
+//             sh 'npm install'
 //         }
-//     }
 
-//     stage('Test') {
-//         script {
-//             sh """
-//                 echo "Menjalankan Test di VM host..."
-//                 ./jenkins/scripts/test.sh
-//             """
+//         stage('Test') {
+//             sh './jenkins/scripts/test.sh'
 //         }
 //     }
 
@@ -493,22 +363,20 @@ node {
 //         }
 //     }
 
-//     stage('Deploy') {
-//         script {
+//     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+//         stage('Deploy') {
 //             // Mematikan proses yang menggunakan port 3000 sebelum memulai deploy
 //             sh """
-//                 echo "Deploy di VM host..."
 //                 if lsof -i:3000; then
 //                     echo "Port 3000 sedang digunakan. Menghentikan proses..."
 //                     fuser -k 3000/tcp || true
 //                 fi
-
-//                 # Menjalankan aplikasi
-//                 npm start &
-//                 echo 'Aplikasi berjalan selama 1 menit...'
-//                 sleep 60
-//                 echo 'Tahap Deploy selesai.'
 //             """
+//             // Menjalankan aplikasi
+//             sh 'npm start &'
+//             echo 'Aplikasi berjalan selama 1 menit...'
+//             sleep 60
+//             echo 'Tahap Deploy selesai.'
 //         }
 //     }
 
@@ -518,7 +386,7 @@ node {
 //             def tag = "latest"
 
 //             sh """
-//                 echo "Membangun Docker image di VM host..."
+//                 echo "Membangun Docker image..."
 //                 docker build -t ${imageName}:${tag} .
 //             """
 //         }
@@ -531,13 +399,13 @@ node {
 
 //             // Hapus container lama jika ada
 //             sh """
-//                 echo "Menjalankan Docker container di VM host..."
 //                 if [ \$(docker ps -a -q -f name=my-app-container) ]; then
 //                     echo "Menghapus container lama..."
 //                     docker rm -f my-app-container || true
 //                 fi
 
 //                 # Menjalankan container baru
+//                 echo "Menjalankan Docker container..."
 //                 docker run -d -p 3000:3000 --name my-app-container ${imageName}:${tag}
 //             """
 //         }
@@ -547,13 +415,147 @@ node {
 //         script {
 //             // Debugging untuk melihat log dan status container
 //             sh """
-//                 echo "Debugging container di VM host..."
 //                 echo "Daftar container Docker:"
 //                 docker ps -a
-                
+
 //                 echo "Log dari container my-app-container:"
 //                 docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
 //             """
 //         }
 //     }
 // }
+
+node {
+    stage('Clean Up Docker') {
+        script {
+            // Membersihkan container dan image Docker sebelum melanjutkan pipeline
+            sh """
+                echo "Membersihkan container dan image Docker di host..."
+
+                # Hentikan semua container yang sedang berjalan
+                if [ \$(docker ps -q | wc -l) -gt 0 ]; then
+                    echo "Menghentikan semua container yang sedang berjalan..."
+                    docker ps -q | xargs -r docker stop || true
+                fi
+
+                # Hapus semua container
+                if [ \$(docker ps -a -q | wc -l) -gt 0 ]; then
+                    echo "Menghapus semua container..."
+                    docker ps -a -q | xargs -r docker rm || true
+                fi
+
+                # Hapus semua image Docker
+                if [ \$(docker images -q | wc -l) -gt 0 ]; then
+                    echo "Menghapus semua image Docker..."
+                    docker images -q | xargs -r docker rmi -f || true
+                fi
+            """
+        }
+
+        input message: 'Proses clean-up selesai. Lanjutkan ke tahap Checkout Code?'
+    }
+
+    stage('Checkout Code') {
+        checkout scm
+    }
+
+    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+        stage('Build') {
+            sh 'ls'
+            sh 'npm install'
+        }
+
+        stage('Test') {
+            sh './jenkins/scripts/test.sh'
+        }
+    }
+
+    stage('Deploy to VM') {
+        script {
+            def vmUser = "ubuntu" // Ganti dengan username VM Anda
+            def vmHost = "52.221.207.76" // Ganti dengan host VM Anda
+            def deployDir = "/home/user/ubuntu" // Path direktori deploy di VM
+            def sshCredentialId = "remoteVm" // Ganti dengan ID kredensial SSH di Jenkins
+
+            sshagent([sshCredentialId]) {
+                // Salin file build ke VM
+                sh """
+                    echo "Mengirim file build ke VM..."
+                    scp -r ./build ${vmUser}@${vmHost}:${deployDir}
+                """
+
+                // Jalankan perintah deploy di VM
+                sh """
+                    echo "Melakukan deploy di VM..."
+                    ssh ${vmUser}@${vmHost} "bash -c '
+                        cd ${deployDir}
+                        if lsof -i:3000; then
+                            echo \"Port 3000 sedang digunakan. Menghentikan proses...\"
+                            fuser -k 3000/tcp || true
+                        fi
+                        echo \"Menjalankan aplikasi...\"
+                        nohup npm start &
+                    '
+                    "
+                """
+            }
+        }
+    }
+
+    stage('Build Docker Image') {
+        script {
+            def imageName = "my-app-image"
+            def tag = "latest"
+
+            sh """
+                echo "Membangun Docker image..."
+                docker build -t ${imageName}:${tag} .
+            """
+        }
+    }
+
+    // stage('Deploy to Secondary VM') {
+    //     script {
+    //         def vmUser = "secondary-user" // Ganti dengan username VM sekunder Anda
+    //         def vmHost = "secondary-vm-host" // Ganti dengan host VM sekunder Anda
+    //         def deployDir = "/home/secondary-user/deploy" // Path direktori deploy di VM sekunder
+    //         def sshCredentialId = "secondary-ssh-credential-id" // Ganti dengan ID kredensial SSH di Jenkins
+
+    //         sshagent([sshCredentialId]) {
+    //             // Salin file build ke VM sekunder
+    //             sh """
+    //                 echo "Mengirim file build ke VM sekunder..."
+    //                 scp -r ./build ${vmUser}@${vmHost}:${deployDir}
+    //             """
+
+    //             // Jalankan perintah deploy di VM sekunder
+    //             sh """
+    //                 echo "Melakukan deploy di VM sekunder..."
+    //                 ssh ${vmUser}@${vmHost} "bash -c '
+    //                     cd ${deployDir}
+    //                     if lsof -i:3000; then
+    //                         echo \"Port 3000 sedang digunakan. Menghentikan proses...\"
+    //                         fuser -k 3000/tcp || true
+    //                     fi
+    //                     echo \"Menjalankan aplikasi di VM sekunder...\"
+    //                     nohup npm start &
+    //                 '
+    //                 "
+    //             """
+    //         }
+    //     }
+    // }
+
+    stage('Debug Docker') {
+        script {
+            // Debugging untuk melihat log dan status container
+            sh """
+                echo "Daftar container Docker:"
+                docker ps -a
+
+                echo "Log dari container my-app-container:"
+                docker logs my-app-container || echo "Tidak ada log atau container belum berjalan."
+            """
+        }
+    }
+}

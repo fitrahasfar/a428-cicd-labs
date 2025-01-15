@@ -426,34 +426,34 @@
 // }
 
 node {
-    stage('Clean Up Docker') {
-        script {
-            // Membersihkan container dan image Docker sebelum melanjutkan pipeline
-            sh """
-                echo "Membersihkan container dan image Docker di host..."
+    // stage('Clean Up Docker') {
+    //     script {
+    //         // Membersihkan container dan image Docker sebelum melanjutkan pipeline
+    //         sh """
+    //             echo "Membersihkan container dan image Docker di host..."
 
-                # Hentikan semua container yang sedang berjalan
-                if [ \$(docker ps -q | wc -l) -gt 0 ]; then
-                    echo "Menghentikan semua container yang sedang berjalan..."
-                    docker ps -q | xargs -r docker stop || true
-                fi
+    //             # Hentikan semua container yang sedang berjalan
+    //             if [ \$(docker ps -q | wc -l) -gt 0 ]; then
+    //                 echo "Menghentikan semua container yang sedang berjalan..."
+    //                 docker ps -q | xargs -r docker stop || true
+    //             fi
 
-                # Hapus semua container
-                if [ \$(docker ps -a -q | wc -l) -gt 0 ]; then
-                    echo "Menghapus semua container..."
-                    docker ps -a -q | xargs -r docker rm || true
-                fi
+    //             # Hapus semua container
+    //             if [ \$(docker ps -a -q | wc -l) -gt 0 ]; then
+    //                 echo "Menghapus semua container..."
+    //                 docker ps -a -q | xargs -r docker rm || true
+    //             fi
 
-                # Hapus semua image Docker
-                if [ \$(docker images -q | wc -l) -gt 0 ]; then
-                    echo "Menghapus semua image Docker..."
-                    docker images -q | xargs -r docker rmi -f || true
-                fi
-            """
-        }
+    //             # Hapus semua image Docker
+    //             if [ \$(docker images -q | wc -l) -gt 0 ]; then
+    //                 echo "Menghapus semua image Docker..."
+    //                 docker images -q | xargs -r docker rmi -f || true
+    //             fi
+    //         """
+    //     }
 
-        input message: 'Proses clean-up selesai. Lanjutkan ke tahap Checkout Code?'
-    }
+    //     input message: 'Proses clean-up selesai. Lanjutkan ke tahap Checkout Code?'
+    // }
 
     stage('Checkout Code') {
         checkout scm

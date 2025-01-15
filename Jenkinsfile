@@ -472,9 +472,9 @@ node {
 
     stage('Deploy to VM') {
         script {
-            def vmUser = "Ubuntu"
+            def vmUser = "ubuntu"
             def vmHost = "52.221.207.76"
-            def deployDir = "/home/user/deploy"
+            def deployDir = "/home/ubuntu/ubuntu"
             def sshCredentialId = "remoteVm"
 
             sshagent([sshCredentialId]) {
@@ -527,3 +527,4 @@ node {
         }
     }
 }
+

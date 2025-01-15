@@ -463,10 +463,53 @@ node {
         stage('Build') {
             sh 'ls'
             sh 'npm install'
+            sh 'npm run build' // Pastikan build menghasilkan file untuk aplikasi
         }
 
         stage('Test') {
             sh './jenkins/scripts/test.sh'
+        }
+    }
+
+    stage('Prepare Docker Image') {
+        script {
+            def imageName = "my-app-image"
+            def tag = "latest"
+
+            // Build Docker image di Jenkins
+            sh """
+                echo "Membangun Docker image..."
+                docker build -t ${imageName}:${tag} .
+            """
+
+            // Save Docker image ke file
+            sh """
+                echo "Menyimpan Docker image ke file..."
+                docker save ${imageName}:${tag} > my-app-image.tar
+            """
+
+            // Kirim file image ke server remote
+            def vmUser = "ubuntu"
+            def vmHost = "52.221.207.76"
+            def deployDir = "/home/ubuntu/deploy"
+            def sshCredentialId = "remoteVm"
+
+            sshagent([sshCredentialId]) {
+                sh """
+                    echo "Mengirim Docker image ke server remote..."
+                    scp -o StrictHostKeyChecking=no my-app-image.tar ${vmUser}@${vmHost}:${deployDir}/
+                """
+
+                // Load Docker image di server remote
+                sh """
+                    echo "Meload Docker image di server remote..."
+                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "bash -c '
+                        cd ${deployDir}
+                        docker load < my-app-image.tar
+                    '
+                    "
+                """
+            }
         }
     }
 
@@ -478,32 +521,39 @@ node {
             def sshCredentialId = "remoteVm"
 
             sshagent([sshCredentialId]) {
-                // Periksa apakah direktori target ada di server
-                sh """
-                    echo "Memeriksa apakah direktori deploy ada di server..."
-                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "
-                        mkdir -p ${deployDir}
-                    "
-                """
-
-                // Salin file project ke VM
-                sh """
-                    echo "Mengirim file project ke VM..."
-                    scp -o StrictHostKeyChecking=no -r ./* ${vmUser}@${vmHost}:${deployDir}/
-                """
-
-                // Jalankan aplikasi di server menggunakan Docker
+                // Jalankan aplikasi di server remote menggunakan Docker
                 sh """
                     echo "Menjalankan aplikasi di server menggunakan Docker..."
                     ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "bash -c '
-                        cd ${deployDir}
                         if docker ps -q --filter name=my-app-container; then
                             echo \"Container sudah berjalan. Menghentikan container lama...\"
                             docker stop my-app-container && docker rm my-app-container
                         fi
                         echo \"Menjalankan container baru...\"
                         docker run -d --name my-app-container -p 3000:3000 my-app-image:latest
-                    '"
+                    '
+                    "
+                """
+            }
+        }
+    }
+
+    stage('Debug Docker') {
+        script {
+            def vmUser = "ubuntu"
+            def vmHost = "52.221.207.76"
+            def sshCredentialId = "remoteVm"
+
+            sshagent([sshCredentialId]) {
+                // Debugging untuk melihat log dan status container di server remote
+                sh """
+                    echo "Melihat status container di server remote..."
+                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "bash -c '
+                        docker ps -a
+                        echo \"Log dari container my-app-container...\"
+                        docker logs my-app-container || echo \"Tidak ada log atau container belum berjalan.\"
+                    '
+                    "
                 """
             }
         }

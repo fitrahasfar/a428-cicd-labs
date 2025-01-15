@@ -487,7 +487,7 @@ node {
                 // Jalankan perintah deploy di VM
                 sh """
                     echo "Melakukan deploy di VM..."
-                    ssh -o StrictHostKeyChecking=no . ${vmUser}@${vmHost} "bash -c '
+                    ssh -o StrictHostKeyChecking=no -r . ${vmUser}@${vmHost} "bash -c '
                         cd ${deployDir}
                         if lsof -i:3000; then
                             echo \"Port 3000 sedang digunakan. Menghentikan proses...\"

@@ -477,7 +477,7 @@ node {
             def deployDir = "/home/ubuntu/deploy"
             def sshCredentialId = "remoteVm"
 
-            sshagent(credentials: [sshCredentialId]) {
+            sshagent([sshCredentialId]) {
                 // Periksa apakah direktori target ada di server
                 sh """
                     echo "Memeriksa apakah direktori deploy ada di server..."
@@ -495,18 +495,17 @@ node {
                 // Jalankan aplikasi di server
                 sh """
                     echo "Menjalankan aplikasi di server..."
-                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "
-                        cd ${deployDir} &&
+                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "bash -c '
+                        cd ${deployDir}
                         if lsof -i:3000; then
-                            echo \\\"Port 3000 sedang digunakan. Menghentikan proses...\\\" &&
+                            echo \"Port 3000 sedang digunakan. Menghentikan proses...\"
                             fuser -k 3000/tcp || true
-                        fi &&
-                        echo \\\"Menjalankan aplikasi...\\\" &&
+                        fi
+                        echo \"Menjalankan aplikasi...\"
                         nohup npm start > output.log 2>&1 &
-                    "
+                    '"
                 """
             }
         }
     }
 }
-

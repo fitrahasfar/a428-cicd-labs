@@ -490,7 +490,7 @@ node {
 
             // Kirim file image ke server remote
             def vmUser = "ubuntu"
-            def vmHost = "18.140.55.151"
+            def vmHost = "52.221.207.76"
             def deployDir = "/home/ubuntu/deploy"
             def sshCredentialId = "remoteVm"
 
@@ -516,7 +516,7 @@ node {
     stage('Deploy to VM') {
         script {
             def vmUser = "ubuntu"
-            def vmHost = "18.140.55.151"
+            def vmHost = "52.221.207.76"
             def deployDir = "/home/ubuntu/deploy"
             def sshCredentialId = "remoteVm"
 

@@ -481,7 +481,7 @@ node {
                 // Salin file build ke VM
                 sh """
                     echo "Mengirim file build ke VM..."
-                    scp -o StrictHostKeyChecking=no -r ./build ${vmUser}@${vmHost}:${deployDir}
+                    scp -o StrictHostKeyChecking=no -r ${vmUser}@${vmHost}:${deployDir}
                 """
 
                 // Jalankan perintah deploy di VM

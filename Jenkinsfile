@@ -492,7 +492,7 @@ node {
             def vmUser = "ubuntu"
             def vmHost = "52.221.196.161"
             def deployDir = "/home/ubuntu/deploy"
-            def sshCredentialId = "remoteVm"
+            def sshCredentialId = "vmRemote"
 
             sshagent([sshCredentialId]) {
                 sh """
@@ -518,7 +518,7 @@ node {
             def vmUser = "ubuntu"
             def vmHost = "52.221.196.161"
             def deployDir = "/home/ubuntu/deploy"
-            def sshCredentialId = "remoteVm"
+            def sshCredentialId = "vmRemote"
 
             sshagent([sshCredentialId]) {
                 // Jalankan aplikasi di server remote menggunakan Docker

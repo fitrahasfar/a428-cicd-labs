@@ -474,7 +474,7 @@ node {
         script {
             def vmUser = "ubuntu"
             def vmHost = "52.221.207.76"
-            def deployDir = "/home/ubuntu/ubuntu"
+            def deployDir = "/home/ubuntu/"
             def sshCredentialId = "remoteVm"
 
             sshagent([sshCredentialId]) {

@@ -472,22 +472,22 @@ node {
 
     stage('Deploy to VM') {
         script {
-            def vmUser = "ubuntu" // Ganti dengan username VM Anda
-            def vmHost = "52.221.207.76" // Ganti dengan host VM Anda
-            def deployDir = "/home/user/ubuntu" // Path direktori deploy di VM
-            def sshCredentialId = "remoteVm" // Ganti dengan ID kredensial SSH di Jenkins
+            def vmUser = "Ubuntu"
+            def vmHost = "52.221.207.76"
+            def deployDir = "/home/user/deploy"
+            def sshCredentialId = "remoteVm"
 
             sshagent([sshCredentialId]) {
                 // Salin file build ke VM
                 sh """
                     echo "Mengirim file build ke VM..."
-                    scp -r ./build ${vmUser}@${vmHost}:${deployDir}
+                    scp -o StrictHostKeyChecking=no -r ./build ${vmUser}@${vmHost}:${deployDir}
                 """
 
                 // Jalankan perintah deploy di VM
                 sh """
                     echo "Melakukan deploy di VM..."
-                    ssh ${vmUser}@${vmHost} "bash -c '
+                    ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "bash -c '
                         cd ${deployDir}
                         if lsof -i:3000; then
                             echo \"Port 3000 sedang digunakan. Menghentikan proses...\"
@@ -513,38 +513,6 @@ node {
             """
         }
     }
-
-    // stage('Deploy to Secondary VM') {
-    //     script {
-    //         def vmUser = "secondary-user" // Ganti dengan username VM sekunder Anda
-    //         def vmHost = "secondary-vm-host" // Ganti dengan host VM sekunder Anda
-    //         def deployDir = "/home/secondary-user/deploy" // Path direktori deploy di VM sekunder
-    //         def sshCredentialId = "secondary-ssh-credential-id" // Ganti dengan ID kredensial SSH di Jenkins
-
-    //         sshagent([sshCredentialId]) {
-    //             // Salin file build ke VM sekunder
-    //             sh """
-    //                 echo "Mengirim file build ke VM sekunder..."
-    //                 scp -r ./build ${vmUser}@${vmHost}:${deployDir}
-    //             """
-
-    //             // Jalankan perintah deploy di VM sekunder
-    //             sh """
-    //                 echo "Melakukan deploy di VM sekunder..."
-    //                 ssh ${vmUser}@${vmHost} "bash -c '
-    //                     cd ${deployDir}
-    //                     if lsof -i:3000; then
-    //                         echo \"Port 3000 sedang digunakan. Menghentikan proses...\"
-    //                         fuser -k 3000/tcp || true
-    //                     fi
-    //                     echo \"Menjalankan aplikasi di VM sekunder...\"
-    //                     nohup npm start &
-    //                 '
-    //                 "
-    //             """
-    //         }
-    //     }
-    // }
 
     stage('Debug Docker') {
         script {

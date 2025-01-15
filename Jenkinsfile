@@ -492,17 +492,17 @@ node {
                     scp -o StrictHostKeyChecking=no -r ./* ${vmUser}@${vmHost}:${deployDir}/
                 """
 
-                // Jalankan aplikasi di server
+                // Jalankan aplikasi di server menggunakan Docker
                 sh """
-                    echo "Menjalankan aplikasi di server..."
+                    echo "Menjalankan aplikasi di server menggunakan Docker..."
                     ssh -o StrictHostKeyChecking=no ${vmUser}@${vmHost} "bash -c '
                         cd ${deployDir}
-                        if lsof -i:3000; then
-                            echo \"Port 3000 sedang digunakan. Menghentikan proses...\"
-                            fuser -k 3000/tcp || true
+                        if docker ps -q --filter name=my-app-container; then
+                            echo \"Container sudah berjalan. Menghentikan container lama...\"
+                            docker stop my-app-container && docker rm my-app-container
                         fi
-                        echo \"Menjalankan aplikasi...\"
-                        nohup npm start > output.log 2>&1 &
+                        echo \"Menjalankan container baru...\"
+                        docker run -d --name my-app-container -p 3000:3000 my-app-image:latest
                     '"
                 """
             }

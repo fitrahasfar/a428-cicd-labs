@@ -540,10 +540,6 @@ node {
     stage('Checkout Code') {
         checkout scm
     }
-    environment {
-        IMAGE_NAME = 'react-app'
-        // TAG = "${env.GIT_COMMIT}"
-    }
     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Build') {
             sh 'ls'
@@ -588,7 +584,7 @@ node {
             // fi
             // """
             // jalankan container baru
-            sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:1.0.0"
+            sh "docker run -d -p 3000:3000 --name react-app react-app:1.0.0"
             }
         }
     }

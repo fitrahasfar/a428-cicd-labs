@@ -549,7 +549,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    docker.image('node:16-buster-slim').inside( {
+                    docker.image('node:16-buster-slim').inside {
                         sh 'ls'
                         sh 'npm install'
                     }

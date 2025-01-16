@@ -103,6 +103,10 @@ node {
         TAG = '1.2.0'
     }
 
+    stage('Checkout Code') {
+        checkout scm
+    }
+
     stage('Build') {
         docker.image('node:18-alpine').inside('-p 3000:3000') {
             sh 'ls'

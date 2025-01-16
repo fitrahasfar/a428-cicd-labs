@@ -536,68 +536,6 @@
 
 
 
-// pipeline {
-//     agent any
-//     environment {
-//         IMAGE_NAME = 'react-app'
-//         TAG = '1.0.0'
-//     }
-//     stages {
-//         stage('Checkout Code') {
-//             steps {
-//                 checkout scm
-//             }
-//         }
-//         stage('Build and Test') {
-//             agent {
-//                 docker {
-//                     image 'node:18-alpine' // Menggunakan image Node.js
-//                     args '-p 3000:3000'
-//                 }
-//             }
-//             steps {
-//                 sh 'ls'
-//                 sh 'npm install'
-//                 sh './jenkins/scripts/test.sh'
-//             }
-//         }
-//         stage('Manual Approval') {
-//             steps {
-//                 script {
-//                     def userInput = input(
-//                         message: 'Lanjutkan ke tahap Deploy?',
-//                         parameters: [
-//                             choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan atau Abort untuk menghentikan pipeline')
-//                         ]
-//                     )
-//                     if (userInput == 'Abort') {
-//                         error('Pipeline dihentikan oleh pengguna')
-//                     }
-//                 }
-//             }
-//         }
-//         stage('Build Docker Image') {
-//             steps {
-//                 sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
-//             }
-//         }
-//         stage('Deploy') {
-//             steps {
-//                 script {
-//                     sh '''
-//                     if [ $(docker ps -q -f name=react-app) ]; then
-//                         docker stop react-app
-//                         docker rm react-app
-//                     fi
-//                     '''
-//                     sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:${env.TAG}"
-//                 }
-//             }
-//         }
-//     }
-// }
-
-
 pipeline {
     agent any
     environment {
@@ -648,24 +586,96 @@ pipeline {
                 }
             }
         }
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
+            }
+        }
         stage('Deploy') {
             steps {
                 script {
-                    // Build Docker Image
-                    sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
-
-                    // Stop and remove existing container
                     sh '''
                     if [ $(docker ps -q -f name=react-app) ]; then
                         docker stop react-app
                         docker rm react-app
                     fi
                     '''
-
-                    // Run new container
                     sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:${env.TAG}"
                 }
             }
         }
     }
 }
+
+
+// pipeline {
+//     agent any
+//     environment {
+//         IMAGE_NAME = 'react-app'
+//         TAG = '1.0.0'
+//     }
+//     stages {
+//         stage('Checkout Code') {
+//             steps {
+//                 checkout scm
+//             }
+//         }
+//         stage('Build') {
+//             agent {
+//                 docker {
+//                     image 'node:18-alpine' // Menggunakan image Node.js
+//                     args '-p 3000:3000'
+//                 }
+//             }
+//             steps {
+//                 sh 'ls'
+//                 sh 'npm install'
+//             }
+//         }
+//         stage('Test') {
+//             agent {
+//                 docker {
+//                     image 'node:18-alpine' // Menggunakan image Node.js
+//                     args '-p 3000:3000'
+//                 }
+//             }
+//             steps {
+//                 sh './jenkins/scripts/test.sh'
+//             }
+//         }
+//         stage('Manual Approval') {
+//             steps {
+//                 script {
+//                     def userInput = input(
+//                         message: 'Lanjutkan ke tahap Deploy?',
+//                         parameters: [
+//                             choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan atau Abort untuk menghentikan pipeline')
+//                         ]
+//                     )
+//                     if (userInput == 'Abort') {
+//                         error('Pipeline dihentikan oleh pengguna')
+//                     }
+//                 }
+//             }
+//         }
+//         stage('Deploy') {
+//             steps {
+//                 script {
+//                     // Build Docker Image
+//                     sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
+
+//                     // Stop and remove existing container
+//                     sh '''
+//                     if [ $(docker ps -q -f name=react-app) ]; then
+//                         docker stop react-app
+//                         docker rm react-app
+//                     fi
+//                     '''
+
+//                     // Run new container
+//                     sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:${env.TAG}"
+//                 }
+//             }
+//         }
+//     }
+// }

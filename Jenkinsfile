@@ -543,11 +543,11 @@ pipeline {
         TAG = '1.0.0'
     }
     stages {
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
+        // stage('Checkout Code') {
+        //     steps {
+        //         checkout scm
+        //     }
+        // }
         stage('Build') {
             agent {
                 docker {
@@ -586,14 +586,15 @@ pipeline {
                 }
             }
         }
-        stage('Build Docker Image') {
-            steps {
-                sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
-            }
-        }
+        // stage('Build Docker Image') {
+        //     steps {
+        //         sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
+        //     }
+        // }
         stage('Deploy') {
             steps {
                 script {
+                    sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
                     sh '''
                     if [ $(docker ps -q -f name=react-app) ]; then
                         docker stop react-app

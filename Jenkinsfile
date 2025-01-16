@@ -132,7 +132,7 @@ node {
 
     stage('Deploy') {
         script {
-            sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
+            sh "docker build -t react-app:${env.TAG} ."
             sh '''
             if [ $(docker ps -q -f name=react-app) ]; then
                 docker stop react-app

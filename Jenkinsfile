@@ -577,17 +577,11 @@ pipeline {
             }
         }
         stage('Build Docker Image') {
-            agent {
-                label 'docker-host' // Gunakan agen dengan akses ke Docker
-            }
             steps {
                 sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
             }
         }
         stage('Deploy') {
-            agent {
-                label 'docker-host' // Gunakan agen dengan akses ke Docker
-            }
             steps {
                 script {
                     sh '''

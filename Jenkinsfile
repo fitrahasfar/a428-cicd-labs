@@ -536,62 +536,71 @@
 
 
 
-node {
+pipeline {
     agent any
-    stage('Checkout Code') {
-        checkout scm
+    environment {
+        IMAGE_NAME = 'react-app'
+        TAG = '1.0.0'
     }
-    docker.image('node:18-alpine').inside('-p 3000:3000') {
-        stage('Build') {
-            sh 'ls'
-            sh 'npm install'
-        }
-
-        stage('Test') {
-            sh './jenkins/scripts/test.sh'
-        }
-    }
-
-    stage('Manual Approval') {
-        script {
-            def userInput = input(
-                message: 'Lanjutkan ke tahap Deploy?',
-                parameters: [
-                    choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan ke tahap Deploy atau Abort untuk menghentikan pipeline')
-                ]
-            )
-            if (userInput == 'Abort') {
-                error('Pipeline dihentikan oleh pengguna')
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
             }
         }
-    }
-
-    docker.image('node:18-alpine').inside('-p 3000:3000') {
+        stage('Build and Test') {
+            agent {
+                docker {
+                    image 'node:18-alpine' // Menggunakan image Node.js
+                    args '-p 3000:3000'
+                }
+            }
+            steps {
+                sh 'ls'
+                sh 'npm install'
+                sh './jenkins/scripts/test.sh'
+            }
+        }
+        stage('Manual Approval') {
+            steps {
+                script {
+                    def userInput = input(
+                        message: 'Lanjutkan ke tahap Deploy?',
+                        parameters: [
+                            choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan atau Abort untuk menghentikan pipeline')
+                        ]
+                    )
+                    if (userInput == 'Abort') {
+                        error('Pipeline dihentikan oleh pengguna')
+                    }
+                }
+            }
+        }
+        stage('Build Docker Image') {
+            agent {
+                label 'docker-host' // Gunakan agen dengan akses ke Docker
+            }
+            steps {
+                sh "docker build -t ${env.IMAGE_NAME}:${env.TAG} ."
+            }
+        }
         stage('Deploy') {
             agent {
-                label 'docker-host' // Agen dengan akses ke Docker
+                label 'docker-host' // Gunakan agen dengan akses ke Docker
             }
-            script {
-            // // Install GLIBCrequired
-            // sh '''
-            // if [ $(docker ps -q -f name=react-app) ]; then
-            // docker stop react-app
-            // docker rm react-app
-            // fi
-            // '''
-            
-            // // Check dan stop container
-            // sh """
-            // if [ \$(docker ps -q -f name=react-app) ]; then
-            // docker stop react-app
-            // docker rm react-app
-            // fi
-            // """
-            // jalankan container baru\
-            sh "docker build -t react-app:1.0.0"
-            sh "docker run -d -p 3000:3000 --name react-app react-app:1.0.0"
+            steps {
+                script {
+                    sh '''
+                    if [ $(docker ps -q -f name=react-app) ]; then
+                        docker stop react-app
+                        docker rm react-app
+                    fi
+                    '''
+                    sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:${env.TAG}"
+                }
             }
         }
     }
 }
+
 

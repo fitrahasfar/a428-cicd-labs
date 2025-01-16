@@ -588,7 +588,7 @@ node {
             // fi
             // """
             // jalankan container baru
-            sh "docker run -d -p 3000:3000 --name react-app ${IMAGE_NAME}:${TAG}"
+            sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:${env.TAG}"
             }
         }
     }

@@ -549,7 +549,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+                    docker.image('node:16-buster-slim').inside( {
                         sh 'ls'
                         sh 'npm install'
                     }
@@ -559,7 +559,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+                    docker.image('node:16-buster-slim').inside {
                         sh './jenkins/scripts/test.sh'
                     }
                 }
@@ -578,7 +578,7 @@ pipeline {
                         error('Pipeline dihentikan oleh pengguna')
                     }
 
-                    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+                    docker.image('node:16-buster-slim').inside {
                         // Build container
                         sh "docker build -t ${IMAGE_NAME}:${TAG} ."
 

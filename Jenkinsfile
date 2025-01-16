@@ -542,7 +542,7 @@ node {
     }
     environment {
         IMAGE_NAME = 'react-app'
-        TAG = "${env.GIT_COMMIT}" // Menggunakan commit hash sebagai tag
+        // TAG = "${env.GIT_COMMIT}"
     }
     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Build') {
@@ -588,7 +588,7 @@ node {
             // fi
             // """
             // jalankan container baru
-            sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:${env.TAG}"
+            sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:1.0.0"
             }
         }
     }

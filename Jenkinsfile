@@ -547,35 +547,25 @@ pipeline {
             }
         }
         stage('Build') {
-            agent {
-                docker {
-                    image 'node:16-buster-slim'
-                    args '-p 3000:3000'
-                }
-            }
             steps {
-                sh 'ls'
-                sh 'npm install'
+                script {
+                    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+                        sh 'ls'
+                        sh 'npm install'
+                    }
+                }
             }
         }
         stage('Test') {
-            // agent {
-            //     docker {
-            //         image 'node:16-buster-slim'
-            //         args '-p 3000:3000'
-            //     }
-            // }
             steps {
-                sh './jenkins/scripts/test.sh'
+                script {
+                    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+                        sh './jenkins/scripts/test.sh'
+                    }
+                }
             }
         }
         stage('Deploy') {
-            agent {
-                docker {
-                    image 'node:16-buster-slim'
-                    args '-p 3000:3000'
-                }
-            }
             steps {
                 script {
                     def userInput = input(
@@ -587,25 +577,30 @@ pipeline {
                     if (userInput == 'Abort') {
                         error('Pipeline dihentikan oleh pengguna')
                     }
+
+                    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+                        // Build container
+                        sh "docker build -t ${IMAGE_NAME}:${TAG} ."
+
+                        // Menghapus container sebelumnya jika ada
+                        sh """
+                            if [ \$(docker ps -q -f name=react-app) ]; then
+                                docker stop react-app
+                                docker rm react-app
+                            fi
+                        """
+
+                        // Jalankan container baru
+                        sh "docker run -d -p 3000:3000 --name react-app ${IMAGE_NAME}:${TAG}"
+
+                        // Menjalankan aplikasi
+                        echo 'Aplikasi berjalan selama 1 menit...'
+                        sleep 60
+                        echo 'Tahap Deploy selesai.'
+                    }
                 }
-                sh "docker build -t ${IMAGE_NAME}:${TAG} ."
-
-                // Menghapus container sebelumnya jika ada
-                sh """
-                    if [ \$(docker ps -q -f name=react-app) ]; then
-                        docker stop react-app
-                        docker rm react-app
-                    fi
-                """
-
-                // Jalankan container baru
-                sh "docker run -d -p 3000:3000 --name react-app ${IMAGE_NAME}:${TAG}"
-
-                // Menjalankan aplikasi
-                echo 'Aplikasi berjalan selama 1 menit...'
-                sleep 60
-                echo 'Tahap Deploy selesai.'
             }
         }
     }
 }
+

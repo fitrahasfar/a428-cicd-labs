@@ -131,14 +131,14 @@ node {
 
     stage('Deploy') {
         script {
-            sh "docker build -t react-app:1.2.2 ."
+            sh "docker build -t react-app:1.2.3 ."
             sh '''
             if [ $(docker ps -q -f name=react-app) ]; then
                 docker stop react-app
                 docker rm react-app
             fi
             '''
-            sh "docker run -d -p 3000:3000 --name react-app react-app:1.2.2"
+            sh "docker run -d -p 3000:3000 --name react-app react-app:1.2.3"
             echo 'Aplikasi akan setelah berjalan selama 1 menit...'
             sleep 60
             echo 'Tahap Deploy selesai.'

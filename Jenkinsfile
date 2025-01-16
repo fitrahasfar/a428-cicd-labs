@@ -100,7 +100,7 @@
 node {
     environment {
         IMAGE_NAME = 'react-app'
-        TAG = '1.1.0'
+        TAG = '1.2.0'
     }
 
     stage('Build') {

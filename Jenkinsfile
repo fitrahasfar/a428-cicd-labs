@@ -540,7 +540,7 @@ node {
     stage('Checkout Code') {
         checkout scm
     }
-    docker.image('node:18-buster-slim').inside('-p 3000:3000') {
+    docker.image('node:18-alpine').inside('-p 3000:3000') {
         stage('Build') {
             sh 'ls'
             sh 'npm install'
@@ -565,7 +565,7 @@ node {
         }
     }
 
-    docker.image('node:18-buster-slim').inside('-p 3000:3000') {
+    docker.image('node:18-alpine').inside('-p 3000:3000') {
         stage('Deploy') {
             script {
             // // Install GLIBCrequired

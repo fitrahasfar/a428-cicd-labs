@@ -574,10 +574,6 @@ node {
             script {
             // // Install GLIBCrequired
             sh '''
-            apt-get update && \
-            apt-get install -y software-properties-common && \
-            add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
-            apt-get update && \
             apt-get install -y gcc libc6-dev libc6
             '''
             

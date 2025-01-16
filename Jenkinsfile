@@ -541,7 +541,7 @@ node {
         checkout scm
     }
     environment {
-        IMAGE_NAME = 'dreamacademy'
+        IMAGE_NAME = 'react-app'
         TAG = "${env.GIT_COMMIT}" // Menggunakan commit hash sebagai tag
     }
     docker.image('node:16-buster-slim').inside('-p 3000:3000') {

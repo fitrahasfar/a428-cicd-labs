@@ -572,13 +572,23 @@ node {
     docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Deploy') {
             script {
+            // // Install GLIBCrequired
+            sh '''
+            apt-get update && \
+            apt-get install -y software-properties-common && \
+            add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
+            apt-get update && \
+            apt-get install -y gcc libc6-dev libc6
+            '''
+            
+            // Check dan stop container
             sh """
             if [ \$(docker ps -q -f name=react-app) ]; then
             docker stop react-app
             docker rm react-app
             fi
             """
-            // Run the new container
+            // jalankan container baru
             sh "docker run -d -p 3000:3000 --name react-app ${IMAGE_NAME}:${TAG}"
             }
         }

@@ -98,11 +98,6 @@
 
 // Scripted Pipeline
 node {
-    environment {
-        IMAGE_NAME = 'react-app'
-        TAG = '1.2.0'
-    }
-
     stage('Checkout Code') {
         checkout scm
     }
@@ -136,14 +131,14 @@ node {
 
     stage('Deploy') {
         script {
-            sh "docker build -t react-app:${env.TAG} ."
+            sh "docker build -t react-app:1.2.1 ."
             sh '''
             if [ $(docker ps -q -f name=react-app) ]; then
                 docker stop react-app
                 docker rm react-app
             fi
             '''
-            sh "docker run -d -p 3000:3000 --name react-app ${env.IMAGE_NAME}:${env.TAG}"
+            sh "docker run -d -p 3000:3000 --name react-app react-app:1.2.1"
         }
     }
 }

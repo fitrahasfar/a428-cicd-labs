@@ -540,7 +540,7 @@ node {
     stage('Checkout Code') {
         checkout scm
     }
-    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+    docker.image('node:18-buster-slim').inside('-p 3000:3000') {
         stage('Build') {
             sh 'ls'
             sh 'npm install'
@@ -565,7 +565,7 @@ node {
         }
     }
 
-    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+    docker.image('node:18-buster-slim').inside('-p 3000:3000') {
         stage('Deploy') {
             script {
             // // Install GLIBCrequired
@@ -583,7 +583,8 @@ node {
             // docker rm react-app
             // fi
             // """
-            // jalankan container baru
+            // jalankan container baru\
+            sh "docker build -t react-app:1.0.0"
             sh "docker run -d -p 3000:3000 --name react-app react-app:1.0.0"
             }
         }

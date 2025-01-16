@@ -534,71 +534,52 @@
 //     }
 // }
 
-pipeline {
-    agent any
+
+
+node {
+    stage('Checkout Code') {
+        checkout scm
+    }
     environment {
-        IMAGE_NAME = 'react-app'
+        IMAGE_NAME = 'dreamacademy'
         TAG = "${env.GIT_COMMIT}" // Menggunakan commit hash sebagai tag
     }
-    stages {
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
+    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Build') {
-            steps {
-                script {
-                    docker.image('node:16-buster-slim').inside {
-                        sh 'ls'
-                        sh 'npm install'
-                    }
-                }
-            }
+            sh 'ls'
+            sh 'npm install'
         }
+
         stage('Test') {
-            steps {
-                script {
-                    docker.image('node:16-buster-slim').inside {
-                        sh './jenkins/scripts/test.sh'
-                    }
-                }
+            sh './jenkins/scripts/test.sh'
+        }
+    }
+
+    stage('Manual Approval') {
+        script {
+            def userInput = input(
+                message: 'Lanjutkan ke tahap Deploy?',
+                parameters: [
+                    choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan ke tahap Deploy atau Abort untuk menghentikan pipeline')
+                ]
+            )
+            if (userInput == 'Abort') {
+                error('Pipeline dihentikan oleh pengguna')
             }
         }
+    }
+
+    docker.image('node:16-buster-slim').inside('-p 3000:3000') {
         stage('Deploy') {
-            steps {
-                script {
-                    def userInput = input(
-                        message: 'Lanjutkan ke tahap Deploy?',
-                        parameters: [
-                            choice(name: 'Approval', choices: ['Proceed', 'Abort'], description: 'Pilih Proceed untuk melanjutkan ke tahap Deploy atau Abort untuk menghentikan pipeline')
-                        ]
-                    )
-                    if (userInput == 'Abort') {
-                        error('Pipeline dihentikan oleh pengguna')
-                    }
-
-                    docker.image('node:16-buster-slim').inside {
-                        // Build container
-                        sh "docker build -t ${IMAGE_NAME}:${TAG} ."
-
-                        // Menghapus container sebelumnya jika ada
-                        sh """
-                            if [ \$(docker ps -q -f name=react-app) ]; then
-                                docker stop react-app
-                                docker rm react-app
-                            fi
-                        """
-
-                        // Jalankan container baru
-                        sh "docker run -d -p 3000:3000 --name react-app ${IMAGE_NAME}:${TAG}"
-
-                        // Menjalankan aplikasi
-                        echo 'Aplikasi berjalan selama 1 menit...'
-                        sleep 60
-                        echo 'Tahap Deploy selesai.'
-                    }
-                }
+            script {
+            sh """
+            if [ \$(docker ps -q -f name=react-app) ]; then
+            docker stop react-app
+            docker rm react-app
+            fi
+            """
+            // Run the new container
+            sh "docker run -d -p 3000:3000 --name react-app ${IMAGE_NAME}:${TAG}"
             }
         }
     }

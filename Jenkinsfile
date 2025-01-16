@@ -567,6 +567,9 @@ node {
 
     docker.image('node:18-alpine').inside('-p 3000:3000') {
         stage('Deploy') {
+            agent {
+                label 'docker-host' // Agen dengan akses ke Docker
+            }
             script {
             // // Install GLIBCrequired
             // sh '''

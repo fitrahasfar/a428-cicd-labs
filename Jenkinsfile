@@ -141,7 +141,7 @@ node {
             sh "docker run -d -p 3000:3000 --name react-app react-app:1.2.2"
             echo 'Aplikasi akan setelah berjalan selama 1 menit...'
             sleep 60
-            echo 'Tahap Deploy selesai.
+            echo 'Tahap Deploy selesai.'
         }
     }
 }

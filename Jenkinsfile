@@ -537,6 +537,7 @@
 
 
 node {
+    agent any
     stage('Checkout Code') {
         checkout scm
     }
